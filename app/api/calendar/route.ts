@@ -1,12 +1,23 @@
 
 import { NextResponse } from 'next/server';
 
-const MOCK_EVENTS = [
-  { id: 1, title: "Weekly Review", start: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(), type: "recurring" },
-  { id: 2, title: "Database Backup", start: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(), type: "maintenance" },
-  { id: 3, title: "Content Sync", start: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(), type: "automated" },
-];
-
 export async function GET() {
-  return NextResponse.json(MOCK_EVENTS);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://157.230.133.243:8000';
+  
+  try {
+    const res = await fetch(`${API_URL}/calendar`, {
+      headers: { 'x-api-key': 'mission-control-secret-key' },
+      cache: 'no-store'
+    });
+    
+    if (!res.ok) throw new Error('Failed to fetch from local API');
+    
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json([
+      { id: "err-2", title: "API Unavailable", start: new Date().toISOString(), type: "Error" }
+    ]);
+  }
 }
